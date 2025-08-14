@@ -12,7 +12,7 @@ public class SelfHeartBeatScheduler {
     @Scheduled(fixedRate = 240_000) // на всеки 240 000 ms = 4 минути
     public void heartBeatSelf() {
         try {
-            restTemplate.getForObject("https://user-svc-url/heartbeat", String.class);
+            restTemplate.getForObject("https://glad-candida-lumo-user-svc-ee901669.koyeb.app/heartbeat", String.class);
         } catch (Exception e) {
             System.out.println("Ping failed: " + e.getMessage());
         }
