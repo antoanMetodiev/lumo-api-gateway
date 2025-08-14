@@ -23,8 +23,8 @@ public class Heartbeat {
     @GetMapping("/heartbeat")
     public ResponseEntity<Void> heartbeat() {
         try {
-            movieClient.getAllMoviesCount();
-            seriesClient.getAllSeriesCount();
+            movieClient.heartbeat();
+            seriesClient.heartbeat();
         } catch (Exception e) {
             System.out.println("Heartbeat failed: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
