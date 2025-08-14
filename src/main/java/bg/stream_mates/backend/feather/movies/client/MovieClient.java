@@ -13,6 +13,9 @@ import java.util.List;
 //@FeignClient(name = "stream-mate-movie-svc", url = "http://localhost:8081", configuration = FeignConfig.class)
 public interface MovieClient {
 
+    @GetMapping("/heartbeat")
+    void heartbeat();
+
     @PostMapping("/post-movie-comment")
     void postComment(
             @RequestParam String authorUsername,
