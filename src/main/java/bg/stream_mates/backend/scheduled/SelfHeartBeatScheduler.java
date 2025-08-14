@@ -9,7 +9,7 @@ public class SelfHeartBeatScheduler {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Scheduled(cron = "0 0 9 * * ?") // всеки ден в 9ч.
+    @Scheduled(fixedRate = 240_000) // на всеки 240 000 ms = 4 минути
     public void heartBeatSelf() {
         try {
             restTemplate.getForObject("https://user-svc-url/heartbeat", String.class);
