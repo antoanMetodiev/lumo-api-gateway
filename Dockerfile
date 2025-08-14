@@ -1,29 +1,32 @@
-# Етап 1: Създаване на JAR файла
-FROM ubuntu:latest AS build
-
-RUN apt-get update
-RUN apt-get install openjdk-17-jdk -y
+# Етап 1: Build
+FROM gradle:8.3-jdk21 AS build
 
 WORKDIR /app
 
-# Копиране на всички файлове от проекта в контейнера
+# Копиране на Gradle wrapper и конфигурация
+COPY gradle gradle
+COPY gradlew .
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+
+# Кеширане на зависимостите
+RUN ./gradlew --no-daemon buildEnvironment
+
+# Копиране на останалите файлове
 COPY . .
 
-# Дава права за изпълнение на gradlew (ако е нужно)
-RUN chmod +x ./gradlew
-
-# Изграждане на JAR файла
+# Създаване на JAR
 RUN ./gradlew bootJar --no-daemon
 
-# Етап 2: Създаване на финален образ
-FROM openjdk:17-jdk-slim
+# Етап 2: Финален образ
+FROM eclipse-temurin:21-jdk-jammy AS runtime
 
 WORKDIR /app
 
-# Излагане на порта, на който ще работи приложението
+# Излагане на порта
 EXPOSE 8080
 
-# Копиране на JAR файла от предишния етап в правилната директория
+# Копиране само на финалния JAR
 COPY --from=build /app/build/libs/*.jar app.jar
 
 # Стартиране на приложението
