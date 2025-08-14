@@ -1,4 +1,3 @@
-# Етап 1: Build
 FROM gradle:8.3-jdk21 AS build
 
 WORKDIR /app
