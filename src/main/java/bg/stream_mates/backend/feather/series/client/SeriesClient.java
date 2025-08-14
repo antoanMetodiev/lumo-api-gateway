@@ -16,6 +16,9 @@ import java.util.List;
 @FeignClient(name = "stream-mate-series-svc", url = "http://localhost:8082", configuration = FeignConfig.class)
 public interface SeriesClient {
 
+    @GetMapping("/heartbeat")
+    void heartbeat();
+
     @GetMapping("/get-next-thirty-series")
     List<CinemaRecordResponse> getEveryThirtySeries(@RequestParam(defaultValue = "0") int page,
                                                     @RequestParam(defaultValue = "10") int size);
