@@ -25,6 +25,7 @@ public class Heartbeat {
         try {
             movieClient.heartbeat();
             seriesClient.heartbeat();
+            System.out.println("=====+++++>>>>>>> Receive SELF-HEARTBEAT...!!!");
         } catch (Exception e) {
             System.out.println("Heartbeat failed: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
