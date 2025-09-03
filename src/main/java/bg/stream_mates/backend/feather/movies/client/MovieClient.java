@@ -4,14 +4,21 @@ import bg.stream_mates.backend.commonData.dtos.CinemaRecordResponse;
 import bg.stream_mates.backend.config.FeignConfig;
 import bg.stream_mates.backend.feather.movies.models.dtos.MovieComment;
 import bg.stream_mates.backend.feather.movies.models.entities.Movie;
+import bg.stream_mates.backend.feather.movies.models.entities.TrendingMovie;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "stream-mate-movie-svc", url = "https://lumo-movies-svc.onrender.com", configuration = FeignConfig.class)
-//@FeignClient(name = "stream-mate-movie-svc", url = "http://localhost:8081", configuration = FeignConfig.class)
+//@FeignClient(name = "stream-mate-movie-svc", url = "https://lumo-movies-svc.onrender.com", configuration = FeignConfig.class)
+@FeignClient(name = "stream-mate-movie-svc", url = "http://localhost:8081", configuration = FeignConfig.class)
 public interface MovieClient {
+
+
+    @GetMapping("/get-trending-movies")
+    List<TrendingMovie> getTrendingMovies();
+
 
     @GetMapping("/heartbeat")
     void heartbeat();
@@ -36,7 +43,7 @@ public interface MovieClient {
     List<Movie> getMoviesByTitle(@RequestParam String title);
 
     @GetMapping("/get-movie-details")
-    Movie getConcreteMovieDetails(@RequestParam String id);
+    Movie getConcreteMovieDetails(@RequestParam String movieId);
 
     @PostMapping("/search-movies")
     void searchMovies(@RequestBody String title);

@@ -12,6 +12,7 @@ public class SelfHeartBeatScheduler {
     @Scheduled(fixedRate = 240_000) // на всеки 240 000 ms = 4 минути
     public void heartBeatSelf() {
         try {
+            System.out.println("=====>>>>>>> Receive SELF-HEARTBEAT...!!!");
             restTemplate.getForObject("https://lumo-api-gateway.onrender.com/heartbeat", String.class);
         } catch (Exception e) {
             System.out.println("Ping failed: " + e.getMessage());

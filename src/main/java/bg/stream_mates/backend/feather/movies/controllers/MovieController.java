@@ -95,9 +95,9 @@ public class MovieController {
     }
 
     @GetMapping("/get-movie-details")
-    public Movie getConcreteMovieDetails(@RequestParam String id) {
-        if (id == null || id.trim().isEmpty()) return new Movie();
-        Movie movie = this.movieClient.getConcreteMovieDetails(id);
+    public Movie getConcreteMovieDetails(@RequestParam String movieId) {
+        if (movieId == null || movieId.trim().isEmpty()) return new Movie();
+        Movie movie = this.movieClient.getConcreteMovieDetails(movieId);
         return movie;
     }
 
