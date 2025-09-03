@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class BackEndApplication {
 
     public static void main(String[] args) {
+        System.out.println("YES!");
         SpringApplication.run(BackEndApplication.class, args);
     }
 }
