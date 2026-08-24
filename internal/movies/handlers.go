@@ -61,8 +61,8 @@ func proxyOr500(w http.ResponseWriter, label string, res *downstream.Result, err
 		return
 	}
 	if !res.OK() {
-		log.Printf("%s: downstream status %d", label, res.StatusCode)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("%s: downstream status %d: %s", label, res.StatusCode, res.Body)
+		downstream.WriteProxy(w, res)
 		return
 	}
 	downstream.WriteProxy(w, res)
