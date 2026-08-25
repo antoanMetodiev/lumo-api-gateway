@@ -45,7 +45,7 @@ func Load() Config {
 		GrafanaEndpoint: os.Getenv("GRAFANA_OTLP_ENDPOINT"),
 		GrafanaAuth:     os.Getenv("GRAFANA_OTLP_AUTH"),
 
-		MoviesSvcURL:               envOr("MOVIES_SVC_URL", "http://localhost:8081"), // https://lumo-movies-svc.onrender.com
+		MoviesSvcURL:               envOr("MOVIES_SVC_URL", "https://lumo-movies-svc.onrender.com "), //  http://localhost:8081
 		MoviesGeneratorURL:         envOr("MOVIES_GENERATOR_URL", "https://lumo-movies-generator.onrender.com"),
 		MoviesGeneratorByActorsURL: envOr("MOVIES_GENERATOR_BY_ACTORS_URL", "https://new-lumo-movies-generator-by-actors.onrender.com"),
 		SeriesSvcURL:               envOr("SERIES_SVC_URL", "https://lumo-series-svc.onrender.com"),
