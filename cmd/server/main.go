@@ -23,6 +23,7 @@ import (
 	"lumo-api-gateway/internal/config"
 	"lumo-api-gateway/internal/cors"
 	"lumo-api-gateway/internal/downstream"
+	"lumo-api-gateway/internal/friends"
 	"lumo-api-gateway/internal/heartbeat"
 	"lumo-api-gateway/internal/internalauth"
 	"lumo-api-gateway/internal/lastviewed"
@@ -33,11 +34,12 @@ import (
 	"lumo-api-gateway/internal/series"
 	"lumo-api-gateway/internal/users"
 	"lumo-api-gateway/internal/watchlist"
+	"lumo-api-gateway/internal/wsnotify"
 )
 
 // clerkProtectedPaths mirrors SecurityConfig.PROTECTED_PATHS exactly.
 var clerkProtectedPaths = []string{
-	"/user", "/watchlist", "/last-viewed", "/payments",
+	"/user", "/watchlist", "/last-viewed", "/payments", "/friends",
 	"/post-movie-comment", "/update-movie-comment", "/delete-movie-comment", "/react-movie-comment",
 	"/post-series-comment", "/update-series-comment", "/delete-series-comment", "/react-series-comment",
 }
@@ -65,9 +67,11 @@ func main() {
 	usersClient := users.NewClient(ds, cfg.UserSvcURL)
 	watchlistClient := watchlist.NewClient(ds, cfg.UserSvcURL)
 	lastViewedClient := lastviewed.NewClient(ds, cfg.UserSvcURL)
+	friendsClient := friends.NewClient(ds, cfg.UserSvcURL)
 	paymentsClient := payments.NewClient(ds, cfg.PaymentsSvcURL)
 
 	verifier := clerkauth.New(cfg.ClerkJWKSURL, cfg.ClerkIssuer)
+	wsHub := wsnotify.NewHub(verifier)
 
 	mux := http.NewServeMux()
 	movies.NewHandlers(moviesClient, usersClient).Register(mux)
@@ -76,6 +80,8 @@ func main() {
 	users.NewHandlers(usersClient).Register(mux)
 	watchlist.NewHandlers(watchlistClient).Register(mux)
 	lastviewed.NewHandlers(lastViewedClient).Register(mux)
+	friends.NewHandlers(friendsClient).Register(mux)
+	wsHub.Register(mux)
 	payments.NewHandlers(paymentsClient).Register(mux)
 	heartbeat.NewHandlers(
 		func(ctx context.Context) error { _, err := moviesClient.Heartbeat(ctx); return err },

@@ -3,6 +3,7 @@ module lumo-api-gateway
 go 1.25.0
 
 require (
+	github.com/coder/websocket v1.8.15
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.70.0
 	go.opentelemetry.io/otel v1.45.0
