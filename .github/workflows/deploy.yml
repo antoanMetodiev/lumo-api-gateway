@@ -20,4 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render deploy
-        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        run: |
+          status=$(curl -sS -o response.json -w "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+          echo "HTTP status: $status"
+          echo "Response body:"
+          cat response.json
+          if [ "$status" -ge 300 ]; then
+            exit 1
+          fi
