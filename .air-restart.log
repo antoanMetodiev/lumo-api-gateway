@@ -89,3 +89,79 @@ v1.67.4, built with Go go1.26.7
 [21:46:21] !exclude .git
 [21:46:27] !exclude .git
 [21:46:27] !exclude .git
+[21:46:27] !exclude .git
+[21:46:28] !exclude .git
+[21:46:28] !exclude .git
+[21:46:28] !exclude .git
+[21:46:28] !exclude .git
+[21:46:28] !exclude .git
+[21:46:28] !exclude .git
+[21:46:28] !exclude .git
+2026/08/26 21:48:26 --> GET /get-trending-movies (from [::1]:52417)
+2026/08/26 21:48:26 --> GET /get-trending-movies (from [::1]:52419)
+2026/08/26 21:48:26 <-- GET /get-trending-movies 200 (161.837ms)
+2026/08/26 21:48:26 <-- GET /get-trending-movies 200 (125.4832ms)
+2026/08/26 21:48:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 21:52:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 21:56:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 21:58:48 --> GET /get-trending-movies (from [::1]:63101)
+2026/08/26 21:58:48 <-- GET /get-trending-movies 200 (242.6165ms)
+2026/08/26 22:00:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:04:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:08:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:12:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:16:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:20:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:24:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:28:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:32:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:36:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:40:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:44:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:48:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:52:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 22:56:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:00:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:04:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:08:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:12:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:16:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:20:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:24:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:28:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:32:27 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:36:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:40:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:44:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:48:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:52:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/26 23:56:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:00:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:04:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:08:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:12:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:16:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:20:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:24:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:28:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:32:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:36:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:40:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:44:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:48:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:52:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 00:56:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:00:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:04:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:08:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:12:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:16:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:20:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:24:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:28:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:32:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:36:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:40:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:44:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+[01:46:51] !exclude .git
+[01:46:51] !exclude .git
