@@ -35,13 +35,16 @@ import (
 	"lumo-api-gateway/internal/reqlog"
 	"lumo-api-gateway/internal/series"
 	"lumo-api-gateway/internal/users"
+	"lumo-api-gateway/internal/watching"
 	"lumo-api-gateway/internal/watchlist"
 	"lumo-api-gateway/internal/wsnotify"
 )
 
-// clerkProtectedPaths mirrors SecurityConfig.PROTECTED_PATHS exactly.
+// clerkProtectedPaths mirrors SecurityConfig.PROTECTED_PATHS exactly, plus
+// "/watching" — a new-feature addition with no Java original (see
+// lumo-user-svc's watching package doc comment).
 var clerkProtectedPaths = []string{
-	"/user", "/watchlist", "/last-viewed", "/payments", "/friends", "/likes", "/playlists",
+	"/user", "/watchlist", "/last-viewed", "/payments", "/friends", "/likes", "/playlists", "/watching",
 	"/post-movie-comment", "/update-movie-comment", "/delete-movie-comment", "/react-movie-comment",
 	"/post-series-comment", "/update-series-comment", "/delete-series-comment", "/react-series-comment",
 }
@@ -72,6 +75,7 @@ func main() {
 	likesClient := likes.NewClient(ds, cfg.UserSvcURL)
 	friendsClient := friends.NewClient(ds, cfg.UserSvcURL)
 	playlistsClient := playlists.NewClient(ds, cfg.UserSvcURL)
+	watchingClient := watching.NewClient(ds, cfg.UserSvcURL)
 	paymentsClient := payments.NewClient(ds, cfg.PaymentsSvcURL)
 
 	verifier := clerkauth.New(cfg.ClerkJWKSURL, cfg.ClerkIssuer)
@@ -87,6 +91,7 @@ func main() {
 	likes.NewHandlers(likesClient).Register(mux)
 	friends.NewHandlers(friendsClient).Register(mux)
 	playlists.NewHandlers(playlistsClient).Register(mux)
+	watching.NewHandlers(watchingClient).Register(mux)
 	wsHub.Register(mux)
 	payments.NewHandlers(paymentsClient).Register(mux)
 	heartbeat.NewHandlers(
