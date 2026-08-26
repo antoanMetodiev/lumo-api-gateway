@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"lumo-api-gateway/internal/downstream"
 )
@@ -108,8 +109,10 @@ func (c *Client) PostComment(ctx context.Context, authorUsername, authorFullName
 	return c.ds.Do(ctx, http.MethodPost, u, nil, map[string]string{"X-Clerk-User-Id": authorID})
 }
 
-func (c *Client) SearchSeriesMatchingResults(ctx context.Context, searchTitle string) (*downstream.Result, error) {
-	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/search-series-matching-results/"+url.PathEscape(searchTitle), nil, nil)
+func (c *Client) SearchSeriesMatchingResults(ctx context.Context, searchTitle string, limit, offset int) (*downstream.Result, error) {
+	q := url.Values{"limit": {strconv.Itoa(limit)}, "offset": {strconv.Itoa(offset)}}
+	u := c.baseURL + "/search-series-matching-results/" + url.PathEscape(searchTitle) + "?" + q.Encode()
+	return c.ds.Do(ctx, http.MethodGet, u, nil, nil)
 }
 
 // CheckForNewEpisodes mirrors SeriesClient.checkForNewEpisodes — the JSON

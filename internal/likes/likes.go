@@ -35,10 +35,9 @@ func (c *Client) RemoveLike(ctx context.Context, clerkID, recordID string) (*dow
 	return c.ds.Do(ctx, http.MethodDelete, c.baseURL+"/likes/"+url.PathEscape(recordID), nil, map[string]string{"X-Clerk-User-Id": clerkID})
 }
 
-// GetLikesForUser is deliberately public among any signed-in caller — see
-// lumo-user-svc's getLikesForUser doc comment. callerID still has to be a
-// real signed-in caller (this whole path prefix requires that), it's just
-// not checked against targetClerkID.
+// GetLikesForUser is friendship-gated downstream — see lumo-user-svc's
+// getLikesForUser doc comment. The gateway just forwards callerID; it
+// doesn't itself decide who can see what.
 func (c *Client) GetLikesForUser(ctx context.Context, callerID, targetClerkID string) (*downstream.Result, error) {
 	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/likes/user/"+url.PathEscape(targetClerkID), nil, map[string]string{"X-Clerk-User-Id": callerID})
 }
@@ -103,7 +102,10 @@ func (h *Handlers) addLike(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
-	if !res.OK() {
+	// 409 passes through verbatim — the caller hit the like-limit (see
+	// lumo-user-svc's likes.Handlers.addLike) and needs that status/body,
+	// not a generic 502.
+	if !res.OK() && res.StatusCode != http.StatusConflict {
 		log.Printf("lumo-user-svc call failed for POST /likes: status %d", res.StatusCode)
 		w.WriteHeader(http.StatusBadGateway)
 		return

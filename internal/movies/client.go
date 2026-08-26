@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"lumo-api-gateway/internal/downstream"
 )
@@ -120,8 +121,10 @@ func (c *Client) DeleteMovieComment(ctx context.Context, commentID, movieID, req
 	return c.ds.Do(ctx, http.MethodDelete, u, nil, map[string]string{"X-Clerk-User-Id": requesterID})
 }
 
-func (c *Client) SearchMoviesMatchingResults(ctx context.Context, searchTitle string) (*downstream.Result, error) {
-	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/search-movies-matching-results/"+url.PathEscape(searchTitle), nil, nil)
+func (c *Client) SearchMoviesMatchingResults(ctx context.Context, searchTitle string, limit, offset int) (*downstream.Result, error) {
+	q := url.Values{"limit": {strconv.Itoa(limit)}, "offset": {strconv.Itoa(offset)}}
+	u := c.moviesSvcURL + "/search-movies-matching-results/" + url.PathEscape(searchTitle) + "?" + q.Encode()
+	return c.ds.Do(ctx, http.MethodGet, u, nil, nil)
 }
 
 func (c *Client) AddMoviesByActor(ctx context.Context, imdbID string) (*downstream.Result, error) {

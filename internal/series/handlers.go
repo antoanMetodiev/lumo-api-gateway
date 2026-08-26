@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"lumo-api-gateway/internal/clerkauth"
@@ -12,6 +13,18 @@ import (
 	"lumo-api-gateway/internal/models"
 	"lumo-api-gateway/internal/users"
 )
+
+func queryInt(r *http.Request, key string, def int) int {
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		return def
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		return def
+	}
+	return n
+}
 
 // Handlers mirrors SeriesController — same paths, same params, same status
 // codes.
@@ -95,7 +108,9 @@ func (h *Handlers) checkForNewEpisodes(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handlers) searchSeriesMatchingResults(w http.ResponseWriter, r *http.Request) {
 	searchTitle := r.PathValue("searchTitle")
-	res, err := h.client.SearchSeriesMatchingResults(r.Context(), searchTitle)
+	limit := queryInt(r, "limit", 10)
+	offset := queryInt(r, "offset", 0)
+	res, err := h.client.SearchSeriesMatchingResults(r.Context(), searchTitle, limit, offset)
 	proxyOr500(w, "GET /search-series-matching-results", res, err)
 }
 

@@ -31,6 +31,7 @@ import (
 	"lumo-api-gateway/internal/metrics"
 	"lumo-api-gateway/internal/movies"
 	"lumo-api-gateway/internal/payments"
+	"lumo-api-gateway/internal/playlists"
 	"lumo-api-gateway/internal/reqlog"
 	"lumo-api-gateway/internal/series"
 	"lumo-api-gateway/internal/users"
@@ -40,7 +41,7 @@ import (
 
 // clerkProtectedPaths mirrors SecurityConfig.PROTECTED_PATHS exactly.
 var clerkProtectedPaths = []string{
-	"/user", "/watchlist", "/last-viewed", "/payments", "/friends", "/likes",
+	"/user", "/watchlist", "/last-viewed", "/payments", "/friends", "/likes", "/playlists",
 	"/post-movie-comment", "/update-movie-comment", "/delete-movie-comment", "/react-movie-comment",
 	"/post-series-comment", "/update-series-comment", "/delete-series-comment", "/react-series-comment",
 }
@@ -70,6 +71,7 @@ func main() {
 	lastViewedClient := lastviewed.NewClient(ds, cfg.UserSvcURL)
 	likesClient := likes.NewClient(ds, cfg.UserSvcURL)
 	friendsClient := friends.NewClient(ds, cfg.UserSvcURL)
+	playlistsClient := playlists.NewClient(ds, cfg.UserSvcURL)
 	paymentsClient := payments.NewClient(ds, cfg.PaymentsSvcURL)
 
 	verifier := clerkauth.New(cfg.ClerkJWKSURL, cfg.ClerkIssuer)
@@ -84,6 +86,7 @@ func main() {
 	lastviewed.NewHandlers(lastViewedClient).Register(mux)
 	likes.NewHandlers(likesClient).Register(mux)
 	friends.NewHandlers(friendsClient).Register(mux)
+	playlists.NewHandlers(playlistsClient).Register(mux)
 	wsHub.Register(mux)
 	payments.NewHandlers(paymentsClient).Register(mux)
 	heartbeat.NewHandlers(
