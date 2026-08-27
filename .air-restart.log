@@ -185,3 +185,138 @@ v1.67.4, built with Go go1.26.7
 [01:46:55] !exclude .git
 [01:46:58] !exclude .git
 [01:46:58] !exclude .git
+[01:46:58] !exclude .git
+[01:46:58] !exclude .git
+[01:46:59] !exclude .git
+[01:46:59] !exclude .git
+[01:46:59] !exclude .git
+[01:46:59] !exclude .git
+[01:46:59] !exclude .git
+[01:46:59] !exclude .git
+2026/08/27 01:48:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:52:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 01:56:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:00:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:04:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:08:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:12:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:16:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:20:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:24:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:28:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:32:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:36:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:40:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:44:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:48:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:52:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 02:56:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:00:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:04:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:08:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:12:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:16:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:20:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:24:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:28:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:32:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:36:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:40:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:44:21 --> GET /get-trending-movies (from [::1]:58621)
+2026/08/27 03:44:21 --> GET /get-trending-movies (from [::1]:58622)
+2026/08/27 03:44:21 <-- GET /get-trending-movies 200 (119.2846ms)
+2026/08/27 03:44:21 <-- GET /get-trending-movies 200 (184.7326ms)
+2026/08/27 03:44:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:47:35 --> GET /get-trending-movies (from [::1]:61966)
+2026/08/27 03:47:35 <-- GET /get-trending-movies 200 (206.2331ms)
+2026/08/27 03:48:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:48:30 --> GET /get-trending-movies (from [::1]:62060)
+2026/08/27 03:48:30 <-- GET /get-trending-movies 200 (52.987ms)
+[03:48:39] watching internal\clerkauth
+[03:48:39] watching internal\clerkauth
+[03:50:27] !exclude .git
+[03:50:27] !exclude .git
+[03:51:24] watching internal\internalauth
+[03:51:24] watching internal\internalauth
+[03:51:43] watching internal\cors
+[03:51:43] watching internal\cors
+2026/08/27 03:52:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+[03:52:26] watching internal\config
+[03:52:26] watching internal\config
+[03:52:45] watching internal\clerkauth
+[03:52:45] watching internal\clerkauth
+[03:53:02] !exclude .git
+[03:53:02] !exclude .git
+2026/08/27 03:53:06 --> GET /get-trending-movies (from [::1]:62748)
+2026/08/27 03:53:07 <-- GET /get-trending-movies 200 (807.2041ms)
+[03:54:47] watching internal\downstream
+[03:54:47] watching internal\downstream
+[03:55:01] watching internal\models
+[03:55:01] watching internal\models
+[03:55:24] watching internal\actor
+[03:55:24] watching internal\actor
+[03:55:41] watching internal\reqlog
+[03:55:41] watching internal\reqlog
+2026/08/27 03:55:42 --> GET /get-trending-movies (from [::1]:63930)
+2026/08/27 03:55:43 <-- GET /get-trending-movies 200 (501.7463ms)
+[03:56:03] watching internal\heartbeat
+[03:56:03] watching internal\heartbeat
+[03:56:20] !exclude .git
+[03:56:20] !exclude .git
+2026/08/27 03:56:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 03:57:11 --> GET /get-trending-movies (from [::1]:59468)
+2026/08/27 03:57:11 <-- GET /get-trending-movies 200 (128.9974ms)
+[03:57:33] watching internal\heartbeat
+[03:57:33] watching internal\heartbeat
+[03:57:44] watching internal\heartbeat
+[03:57:44] watching internal\heartbeat
+2026/08/27 03:58:14 --> GET /get-trending-movies (from [::1]:61101)
+2026/08/27 03:58:14 --> GET /get-trending-movies (from [::1]:61100)
+2026/08/27 03:58:14 <-- GET /get-trending-movies 200 (109.1508ms)
+2026/08/27 03:58:14 <-- GET /get-trending-movies 200 (125.2519ms)
+2026/08/27 03:59:32 --> GET /get-trending-movies (from [::1]:51592)
+2026/08/27 03:59:32 <-- GET /get-trending-movies 200 (84.867ms)
+2026/08/27 04:00:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+[04:01:06] watching internal\users
+[04:01:06] watching internal\users
+2026/08/27 04:01:08 --> GET /get-trending-movies (from [::1]:60005)
+2026/08/27 04:01:08 <-- GET /get-trending-movies 200 (196.8139ms)
+2026/08/27 04:01:47 --> GET /get-trending-movies (from [::1]:57800)
+2026/08/27 04:01:47 <-- GET /get-trending-movies 200 (59.7776ms)
+[04:02:15] watching internal\watching
+[04:02:15] watching internal\watching
+2026/08/27 04:04:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:08:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:12:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:16:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:20:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:24:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:28:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:32:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:36:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:40:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:44:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:48:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:49:02 --> GET /get-trending-movies (from [::1]:49641)
+2026/08/27 04:49:02 <-- GET /get-trending-movies 200 (149.863ms)
+2026/08/27 04:52:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 04:56:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:00:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:04:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:08:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:12:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:16:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:20:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:24:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:28:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:32:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:36:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:40:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:44:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+2026/08/27 05:48:25 =====>>>>>>> Receive SELF-HEARTBEAT...!!!
+[05:50:38] Process Exit with Code: 1073807364
+[05:50:38] cleaning...
+[05:50:38] deleting D:\Programming\Personal Projects\AuroraStream\lumo-api-gateway\tmp
+[05:50:38] failed to delete tmp dir, err: unlinkat D:\Programming\Personal Projects\AuroraStream\lumo-api-gateway\tmp\main.exe: Access is denied.
+[05:50:38] see you again~
+2026/08/27 05:50:38 shutting down...
