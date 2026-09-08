@@ -121,6 +121,30 @@ func main() {
 
 	go heartbeat.StartSelfPing(ctx)
 
+	// Fleet-wide keep-alive, independent of the /heartbeat fan-out above
+	// (which only reaches four of these six services — see
+	// StartFleetHealthPing's doc comment): every 2 minutes, ping every
+	// downstream service's own /health directly.
+	go heartbeat.StartFleetHealthPing(ctx, map[string]string{
+		"movies-svc":                 cfg.MoviesSvcURL,
+		"movies-generator":           cfg.MoviesGeneratorURL,
+		"movies-generator-by-actors": cfg.MoviesGeneratorByActorsURL,
+		"series-svc":                 cfg.SeriesSvcURL,
+		"user-svc":                   cfg.UserSvcURL,
+		"payments-svc":               cfg.PaymentsSvcURL,
+	})
+
+	// One entry per distinct Aiven database, not per service — see
+	// StartFleetDBKeepAlive's doc comment for why movies-generator and
+	// movies-generator-by-actors are deliberately left out here (they share
+	// movies-svc's own database).
+	go heartbeat.StartFleetDBKeepAlive(ctx, map[string]string{
+		"movies-db":   cfg.MoviesSvcURL,
+		"series-db":   cfg.SeriesSvcURL,
+		"user-db":     cfg.UserSvcURL,
+		"payments-db": cfg.PaymentsSvcURL,
+	})
+
 	server := &http.Server{
 		Addr:         ":" + cfg.Port,
 		Handler:      handler,
