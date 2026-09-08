@@ -1,7 +1,9 @@
 // Package wsnotify holds live WebSocket connections for signed-in users and
-// pushes best-effort real-time events to them — currently just "you got a
-// friend request" (see lumo-user-svc's friends.NotifyClient, the only
-// caller of the internal notify endpoint below).
+// pushes best-effort real-time events to them — friend requests being sent,
+// accepted, declined or withdrawn, friendships being ended, and friends
+// starting or stopping watching something (see lumo-user-svc's
+// friends.NotifyClient, the only caller of the internal notify endpoint
+// below).
 //
 // Connections live in an in-memory map, so this only works correctly with a
 // single gateway instance — a deliberate, temporary choice: once there's
@@ -40,15 +42,24 @@ const pingInterval = 20 * time.Second
 // currently-stale REST allowlist.
 var allowedOrigins = []string{"localhost:3000", "auroraflix.cloud"}
 
+// conns maps a clerkID to every live connection that user currently has, not
+// to a single one. Holding just one meant a second tab evicted the first,
+// which is not a quiet degradation: the evicted tab sees its socket close and
+// (correctly) reconnects, evicting the tab that just replaced it, which
+// reconnects in turn — two open tabs of the same account sat in a permanent
+// reconnect war, each one's backoff reset by its own successful open, and the
+// events they were fighting over landed in whichever tab happened to hold the
+// slot at that instant. Fanning out to all of them is also just what "notify
+// this user" means.
 type Hub struct {
 	verifier *clerkauth.Verifier
 
 	mu    sync.Mutex
-	conns map[string]*websocket.Conn // clerkID -> live connection; a new connection replaces any old one for that id
+	conns map[string]map[*websocket.Conn]struct{}
 }
 
 func NewHub(verifier *clerkauth.Verifier) *Hub {
-	return &Hub{verifier: verifier, conns: map[string]*websocket.Conn{}}
+	return &Hub{verifier: verifier, conns: map[string]map[*websocket.Conn]struct{}{}}
 }
 
 func (h *Hub) Register(mux *http.ServeMux) {
@@ -75,15 +86,16 @@ func (h *Hub) serveWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.mu.Lock()
-	if old, ok := h.conns[clerkID]; ok {
-		old.Close(websocket.StatusNormalClosure, "replaced by a new connection")
+	if h.conns[clerkID] == nil {
+		h.conns[clerkID] = map[*websocket.Conn]struct{}{}
 	}
-	h.conns[clerkID] = conn
+	h.conns[clerkID][conn] = struct{}{}
 	h.mu.Unlock()
 
 	defer func() {
 		h.mu.Lock()
-		if h.conns[clerkID] == conn {
+		delete(h.conns[clerkID], conn)
+		if len(h.conns[clerkID]) == 0 {
 			delete(h.conns, clerkID)
 		}
 		h.mu.Unlock()
@@ -144,11 +156,17 @@ func (h *Hub) notify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Snapshot the user's connections under the lock and write outside it —
+	// a write blocks on the network, and holding the hub's one mutex for that
+	// would stall every other connect/disconnect/notify in the process.
 	h.mu.Lock()
-	conn, ok := h.conns[clerkID]
+	targets := make([]*websocket.Conn, 0, len(h.conns[clerkID]))
+	for conn := range h.conns[clerkID] {
+		targets = append(targets, conn)
+	}
 	h.mu.Unlock()
 
-	if ok {
+	for _, conn := range targets {
 		if err := wsjson.Write(r.Context(), conn, payload); err != nil {
 			log.Printf("wsnotify: failed to push to clerkId=%s: %v", clerkID, err)
 		}
