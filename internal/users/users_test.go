@@ -1,10 +1,12 @@
 package users
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"lumo-api-gateway/internal/downstream"

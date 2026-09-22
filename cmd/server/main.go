@@ -110,6 +110,12 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"status":"UP"}`))
 	})
+	// Plain alias of the above, same as every downstream service exposes —
+	// this is what StartKeepAlive's self-ping hits.
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"status":"UP"}`))
+	})
 
 	handler := reqlog.Middleware(
 		cors.Middleware(
@@ -119,31 +125,32 @@ func main() {
 		),
 	)
 
-	go heartbeat.StartSelfPing(ctx)
-
-	// Fleet-wide keep-alive, independent of the /heartbeat fan-out above
-	// (which only reaches four of these six services — see
-	// StartFleetHealthPing's doc comment): every 2 minutes, ping every
-	// downstream service's own /health directly.
-	go heartbeat.StartFleetHealthPing(ctx, map[string]string{
-		"movies-svc":                 cfg.MoviesSvcURL,
-		"movies-generator":           cfg.MoviesGeneratorURL,
-		"movies-generator-by-actors": cfg.MoviesGeneratorByActorsURL,
-		"series-svc":                 cfg.SeriesSvcURL,
-		"user-svc":                   cfg.UserSvcURL,
-		"payments-svc":               cfg.PaymentsSvcURL,
-	})
-
-	// One entry per distinct Aiven database, not per service — see
-	// StartFleetDBKeepAlive's doc comment for why movies-generator and
-	// movies-generator-by-actors are deliberately left out here (they share
-	// movies-svc's own database).
-	go heartbeat.StartFleetDBKeepAlive(ctx, map[string]string{
-		"movies-db":   cfg.MoviesSvcURL,
-		"series-db":   cfg.SeriesSvcURL,
-		"user-db":     cfg.UserSvcURL,
-		"payments-db": cfg.PaymentsSvcURL,
-	})
+	// The one scheduled keep-alive job for the whole fleet — every service
+	// (this gateway included, via its own public URL) every 2 minutes, and
+	// every distinct database every 10 hours. Independent of the /heartbeat
+	// fan-out above, which only reaches four services and only when
+	// something external hits it. See StartKeepAlive's doc comment for why
+	// the database list is per-database rather than per-service, and why
+	// subtitles-taker's entry points at /health.
+	go heartbeat.StartKeepAlive(ctx,
+		map[string]string{
+			"api-gateway":                cfg.SelfURL + "/health",
+			"movies-svc":                 cfg.MoviesSvcURL + "/health",
+			"movies-generator":           cfg.MoviesGeneratorURL + "/health",
+			"movies-generator-by-actors": cfg.MoviesGeneratorByActorsURL + "/health",
+			"series-svc":                 cfg.SeriesSvcURL + "/health",
+			"user-svc":                   cfg.UserSvcURL + "/health",
+			"payments-svc":               cfg.PaymentsSvcURL + "/health",
+			"subtitles-taker-svc":        cfg.SubtitlesTakerURL + "/health",
+		},
+		map[string]string{
+			"movies-db":    cfg.MoviesSvcURL + "/db-keepalive",
+			"series-db":    cfg.SeriesSvcURL + "/db-keepalive",
+			"user-db":      cfg.UserSvcURL + "/db-keepalive",
+			"payments-db":  cfg.PaymentsSvcURL + "/db-keepalive",
+			"subtitles-db": cfg.SubtitlesTakerURL + "/health",
+		},
+	)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.Port,

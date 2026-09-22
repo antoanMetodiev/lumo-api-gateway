@@ -30,6 +30,12 @@ type Config struct {
 	SeriesSvcURL               string
 	UserSvcURL                 string
 	PaymentsSvcURL             string
+
+	// Keep-alive-only targets (see internal/heartbeat.StartKeepAlive) — the
+	// gateway never proxies to either of these, it just pings them so
+	// Render's free tier doesn't put them to sleep.
+	SelfURL           string // this gateway's own public URL
+	SubtitlesTakerURL string // lumo-movies-subtitles-taker-svc (my-app calls it directly)
 }
 
 func Load() Config {
@@ -44,13 +50,16 @@ func Load() Config {
 		GrafanaEnabled:  os.Getenv("GRAFANA_OTLP_ENABLED") == "true",
 		GrafanaEndpoint: os.Getenv("GRAFANA_OTLP_ENDPOINT"),
 		GrafanaAuth:     os.Getenv("GRAFANA_OTLP_AUTH"),
-// aiude
-		MoviesSvcURL:               envOr("MOVIES_SVC_URL", "https://lumo-movies-svc.onrender.com"),                                  //    http://localhost:8081
+		// aiude
+		MoviesSvcURL:               envOr("MOVIES_SVC_URL", "https://lumo-movies-svc.onrender.com"),                                     //    http://localhost:8081
 		MoviesGeneratorURL:         envOr("MOVIES_GENERATOR_URL", "https://lumo-movies-generator.onrender.com"),                         // http://localhost:8888
 		MoviesGeneratorByActorsURL: envOr("MOVIES_GENERATOR_BY_ACTORS_URL", "https://new-lumo-movies-generator-by-actors.onrender.com"), // http://localhost:9999
 		SeriesSvcURL:               envOr("SERIES_SVC_URL", "https://lumo-series-svc.onrender.com"),                                     // http://localhost:8082
 		UserSvcURL:                 envOr("USER_SVC_URL", "https://lumo-new-user-svc.onrender.com"),                                     // http://localhost:8083
 		PaymentsSvcURL:             envOr("PAYMENTS_SVC_URL", "https://lumo-payments-svc.onrender.com"),                                 // http://localhost:8084
+
+		SelfURL:           envOr("SELF_URL", "https://lumo-api-gateway.onrender.com"),
+		SubtitlesTakerURL: envOr("SUBTITLES_TAKER_URL", "https://lumo-movies-subtitles-taker-svc.onrender.com"),
 	}
 }
 

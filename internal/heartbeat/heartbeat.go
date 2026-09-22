@@ -1,5 +1,7 @@
-// Package heartbeat mirrors Heartbeat (the GET /heartbeat fan-out) +
-// SelfHeartBeatScheduler (the self-ping ticker).
+// Package heartbeat mirrors Heartbeat (the GET /heartbeat fan-out) and
+// replaces SelfHeartBeatScheduler with StartKeepAlive — one scheduled job
+// that keeps every service (2 min) and every database (10 h) in the fleet
+// warm on Render's free tier / Aiven.
 package heartbeat
 
 import (
@@ -60,71 +62,53 @@ func fireAndForget(name string, call func(context.Context) error) {
 	}()
 }
 
-// fleetPingInterval is deliberately shorter than StartSelfPing's 4 minutes:
-// this pings six services instead of one, and a couple of them (the two
-// movies-generator services) aren't reachable through the existing
-// /heartbeat fan-out at all (Handlers only fans out to four of the six
-// downstream services the gateway knows about — movies-svc, series-svc,
-// user-svc, payments-svc — missing lumo-movies-generator and
-// lumo-movies-generator-by-actors, which never get a keep-alive from
-// anywhere today). 2 minutes comfortably beats Render's free-tier ~15
-// minute idle window with margin for one or two missed/slow ticks.
-const fleetPingInterval = 2 * time.Minute
+// servicePingInterval is how often every service in the fleet (this gateway
+// included) gets a GET /health. Render's free tier puts an idle instance to
+// sleep after ~15 minutes; 2 minutes beats that with margin for a couple of
+// missed or slow ticks. The two movies-generator services and
+// lumo-movies-subtitles-taker-svc are only kept warm by this — nothing else
+// ever calls them on a schedule.
+const servicePingInterval = 2 * time.Minute
 
-// StartFleetHealthPing is a second, independent keep-alive from
-// StartSelfPing: rather than pinging this gateway's own /heartbeat (which
-// then fans out to a subset of downstream services), it directly GETs
-// /health on every service named in urls, every fleetPingInterval, so the
-// full fleet — the two movies-generator services included — never goes
-// idle long enough for Render's free tier to put it to sleep. Runs until
-// ctx is canceled.
-func StartFleetHealthPing(ctx context.Context, urls map[string]string) {
+// dbPingInterval is deliberately coarse: this only exists so each service's
+// own Postgres connection sees regular traffic and doesn't get treated as
+// idle by Aiven, not to keep the Render instance awake (the service tick
+// above already does that far more often). One target per distinct
+// database, not per service — movies-svc, movies-generator and
+// movies-generator-by-actors all share one Aiven database, so
+// movies-svc's /db-keepalive alone covers it.
+const dbPingInterval = 10 * time.Hour
+
+// StartKeepAlive is the gateway's single scheduled keep-alive job: every
+// servicePingInterval it GETs each URL in services, and every
+// dbPingInterval it GETs each URL in databases. Both maps hold full URLs,
+// not base URLs — each target's own /db-keepalive (lumo-movies-svc,
+// lumo-series-svc, lumo-user-svc, lumo-payments-svc) runs a trivial
+// `SELECT 1` against its pool when hit, while
+// lumo-movies-subtitles-taker-svc pings its database from /health instead,
+// so that's the URL it's registered under. Every ping is fire-and-forget
+// (see pingOne), so one slow or dead target never delays the rest of the
+// tick. Replaces the three separate tickers this used to run (self-ping,
+// fleet /health, fleet /db-keepalive). Runs until ctx is canceled.
+func StartKeepAlive(ctx context.Context, services, databases map[string]string) {
 	client := &http.Client{Timeout: 30 * time.Second}
 
-	ticker := time.NewTicker(fleetPingInterval)
-	defer ticker.Stop()
+	serviceTicker := time.NewTicker(servicePingInterval)
+	defer serviceTicker.Stop()
+	dbTicker := time.NewTicker(dbPingInterval)
+	defer dbTicker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
-			for name, base := range urls {
-				pingOne(ctx, client, "fleet health ping", name, base+"/health")
+		case <-serviceTicker.C:
+			for name, url := range services {
+				pingOne(ctx, client, "service keep-alive", name, url)
 			}
-		}
-	}
-}
-
-// dbPingInterval is much coarser than fleetPingInterval on purpose: this
-// only exists so each service's own Postgres connection sees regular
-// traffic and doesn't get treated as idle by Aiven, not to keep the Render
-// instance itself awake (StartFleetHealthPing's /health already does that
-// far more often). Movies-svc, movies-generator and
-// movies-generator-by-actors all share one Aiven database, so pinging
-// movies-svc's /db-keepalive alone already covers it — no need to hit all
-// three separately for the same database.
-const dbPingInterval = 8 * time.Hour
-
-// StartFleetDBKeepAlive GETs /db-keepalive on every service named in urls
-// every dbPingInterval — one entry per distinct database, not per service
-// (see dbPingInterval's doc comment). Each target's own /db-keepalive
-// handler (lumo-movies-svc, lumo-series-svc, lumo-user-svc,
-// lumo-payments-svc) runs a trivial `SELECT 1` against its pool when hit.
-// Runs until ctx is canceled.
-func StartFleetDBKeepAlive(ctx context.Context, urls map[string]string) {
-	client := &http.Client{Timeout: 30 * time.Second}
-
-	ticker := time.NewTicker(dbPingInterval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			for name, base := range urls {
-				pingOne(ctx, client, "fleet db keepalive", name, base+"/db-keepalive")
+		case <-dbTicker.C:
+			for name, url := range databases {
+				pingOne(ctx, client, "db keep-alive", name, url)
 			}
 		}
 	}
@@ -134,7 +118,7 @@ func StartFleetDBKeepAlive(ctx context.Context, urls map[string]string) {
 // panic-recovering shape as fireAndForget above, so one slow or dead target
 // can never delay or fail the ping to any other, and a failure here just
 // gets logged, never surfaced anywhere else. label distinguishes the two
-// callers (StartFleetHealthPing vs StartFleetDBKeepAlive) in the log line.
+// tickers in StartKeepAlive in the log line.
 func pingOne(parent context.Context, client *http.Client, label, name, url string) {
 	go func() {
 		defer func() {
@@ -161,34 +145,4 @@ func pingOne(parent context.Context, client *http.Client, label, name, url strin
 			log.Printf("%s: %s returned status %d", label, name, resp.StatusCode)
 		}
 	}()
-}
-
-// StartSelfPing mirrors SelfHeartBeatScheduler.heartBeatSelf: pings this
-// gateway's own public /heartbeat endpoint every 4 minutes so Render's free
-// tier never lets it go idle long enough to sleep. Runs until ctx is canceled.
-func StartSelfPing(ctx context.Context) {
-	const selfURL = "https://lumo-api-gateway.onrender.com/heartbeat"
-	client := &http.Client{Timeout: 30 * time.Second}
-
-	ticker := time.NewTicker(240 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			log.Println("=====>>>>>>> Receive SELF-HEARTBEAT...!!!")
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, selfURL, nil)
-			if err != nil {
-				continue
-			}
-			resp, err := client.Do(req)
-			if err != nil {
-				log.Printf("Ping failed: %v", err)
-				continue
-			}
-			resp.Body.Close()
-		}
-	}
 }
