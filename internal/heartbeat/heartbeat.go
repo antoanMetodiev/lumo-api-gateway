@@ -1,11 +1,13 @@
 // Package heartbeat mirrors Heartbeat (the GET /heartbeat fan-out) and
 // replaces SelfHeartBeatScheduler with StartKeepAlive — one scheduled job
 // that keeps every service (2 min) and every database (10 h) in the fleet
-// warm on Render's free tier / Aiven.
+// warm on Render’s free tier / Aiven, and regenerates the homepage’s
+// trending lists once a day (see trendingCheckInterval).
 package heartbeat
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -79,6 +81,32 @@ const servicePingInterval = 2 * time.Minute
 // movies-svc's /db-keepalive alone covers it.
 const dbPingInterval = 10 * time.Hour
 
+// trendingMaxAge is how stale the homepage's trending lists are allowed to
+// get before they're regenerated from TMDB.
+const trendingMaxAge = 24 * time.Hour
+
+// trendingCheckInterval is how often that age is checked — deliberately much
+// shorter than trendingMaxAge itself. A plain 24h ticker would restart its
+// countdown on every deploy or Render restart, so a service that gets
+// redeployed most days would regenerate rarely or never. Checking hourly and
+// deciding from the data's own timestamp makes the schedule survive
+// restarts: whenever the fleet comes back up, the next check catches up.
+const trendingCheckInterval = time.Hour
+
+// trendingRefreshTimeout is generous because GenerateTrending{Movies,Series}
+// walks 10+ titles with several sequential TMDB calls each, and pulls any
+// missing one into the catalog on the way — comfortably minutes, not seconds.
+const trendingRefreshTimeout = 10 * time.Minute
+
+// TrendingTarget is one catalog's trending list: ListURL serves the current
+// rows (whose newest createdAt is the freshness signal) and RefreshURL
+// regenerates them. Both are full URLs.
+type TrendingTarget struct {
+	Name       string
+	ListURL    string
+	RefreshURL string
+}
+
 // StartKeepAlive is the gateway's single scheduled keep-alive job: every
 // servicePingInterval it GETs each URL in services, and every
 // dbPingInterval it GETs each URL in databases. Both maps hold full URLs,
@@ -89,14 +117,20 @@ const dbPingInterval = 10 * time.Hour
 // so that's the URL it's registered under. Every ping is fire-and-forget
 // (see pingOne), so one slow or dead target never delays the rest of the
 // tick. Replaces the three separate tickers this used to run (self-ping,
-// fleet /health, fleet /db-keepalive). Runs until ctx is canceled.
-func StartKeepAlive(ctx context.Context, services, databases map[string]string) {
+// fleet /health, fleet /db-keepalive).
+//
+// Each target in `trending` is additionally checked on its own cadence and
+// regenerated when its data has gone stale — see trendingCheckInterval and
+// refreshTrendingIfStale. Runs until ctx is canceled.
+func StartKeepAlive(ctx context.Context, services, databases map[string]string, trending []TrendingTarget) {
 	client := &http.Client{Timeout: 30 * time.Second}
 
 	serviceTicker := time.NewTicker(servicePingInterval)
 	defer serviceTicker.Stop()
 	dbTicker := time.NewTicker(dbPingInterval)
 	defer dbTicker.Stop()
+	trendingTicker := time.NewTicker(trendingCheckInterval)
+	defer trendingTicker.Stop()
 
 	for {
 		select {
@@ -110,8 +144,107 @@ func StartKeepAlive(ctx context.Context, services, databases map[string]string) 
 			for name, url := range databases {
 				pingOne(ctx, client, "db keep-alive", name, url)
 			}
+		case <-trendingTicker.C:
+			for _, target := range trending {
+				refreshTrendingIfStale(ctx, target)
+			}
 		}
 	}
+}
+
+// refreshTrendingIfStale reads one trending list, and if its newest row is
+// older than trendingMaxAge (or there are no rows at all — an empty table
+// right after the migration, or every candidate rejected last run), POSTs
+// the regenerate endpoint. Runs detached and panic-guarded like pingOne, so
+// a refresh that takes minutes never holds up the keep-alive ticks.
+//
+// Deliberately fire-and-forget with no retry: if a run fails, the list stays
+// stale and the next hourly check simply tries again.
+func refreshTrendingIfStale(parent context.Context, target TrendingTarget) {
+	go func() {
+		defer func() {
+			if rec := recover(); rec != nil {
+				log.Printf("trending refresh: %s panic: %v", target.Name, rec)
+			}
+		}()
+
+		ctx := context.WithoutCancel(parent)
+
+		age, ok := newestTrendingAge(ctx, target)
+		if ok && age < trendingMaxAge {
+			return
+		}
+
+		log.Printf("trending refresh: %s is stale, regenerating", target.Name)
+
+		refreshCtx, cancel := context.WithTimeout(ctx, trendingRefreshTimeout)
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(refreshCtx, http.MethodPost, target.RefreshURL, nil)
+		if err != nil {
+			log.Printf("trending refresh: %s: building request failed: %v", target.Name, err)
+			return
+		}
+		resp, err := (&http.Client{Timeout: trendingRefreshTimeout}).Do(req)
+		if err != nil {
+			log.Printf("trending refresh: %s failed: %v", target.Name, err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			log.Printf("trending refresh: %s returned status %d", target.Name, resp.StatusCode)
+			return
+		}
+		log.Printf("trending refresh: %s regenerated", target.Name)
+	}()
+}
+
+// newestTrendingAge returns how long ago the freshest row in a trending list
+// was created. ok is false when that can't be determined — an unreachable
+// service, a non-200, unparseable JSON, or an empty list — which the caller
+// treats as "refresh it". Only createdAt is decoded; the rest of each row is
+// irrelevant here, and the two services' trending shapes differ elsewhere.
+func newestTrendingAge(ctx context.Context, target TrendingTarget) (time.Duration, bool) {
+	listCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(listCtx, http.MethodGet, target.ListURL, nil)
+	if err != nil {
+		log.Printf("trending refresh: %s: building list request failed: %v", target.Name, err)
+		return 0, false
+	}
+	resp, err := (&http.Client{Timeout: 30 * time.Second}).Do(req)
+	if err != nil {
+		log.Printf("trending refresh: %s: list fetch failed: %v", target.Name, err)
+		return 0, false
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("trending refresh: %s: list returned status %d", target.Name, resp.StatusCode)
+		return 0, false
+	}
+
+	var rows []struct {
+		CreatedAt time.Time `json:"createdAt"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&rows); err != nil {
+		log.Printf("trending refresh: %s: decoding list failed: %v", target.Name, err)
+		return 0, false
+	}
+	if len(rows) == 0 {
+		return 0, false
+	}
+
+	newest := rows[0].CreatedAt
+	for _, row := range rows[1:] {
+		if row.CreatedAt.After(newest) {
+			newest = row.CreatedAt
+		}
+	}
+	if newest.IsZero() {
+		return 0, false
+	}
+	return time.Since(newest), true
 }
 
 // pingOne fires one fire-and-forget GET to url — same detached-context,

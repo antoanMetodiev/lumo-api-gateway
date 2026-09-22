@@ -150,6 +150,23 @@ func main() {
 			"payments-db":  cfg.PaymentsSvcURL + "/db-keepalive",
 			"subtitles-db": cfg.SubtitlesTakerURL + "/health",
 		},
+		// The homepage hero's two lists. Called straight on the owning
+		// service rather than through this gateway's own routes: only the
+		// read side is proxied here, and both regenerate endpoints are
+		// public on their service (outside its protectedPaths), same as the
+		// /health and /db-keepalive above.
+		[]heartbeat.TrendingTarget{
+			{
+				Name:       "trending-movies",
+				ListURL:    cfg.MoviesSvcURL + "/get-trending-movies",
+				RefreshURL: cfg.MoviesSvcURL + "/find-new-trending-movies",
+			},
+			{
+				Name:       "trending-series",
+				ListURL:    cfg.SeriesSvcURL + "/get-trending-series",
+				RefreshURL: cfg.SeriesSvcURL + "/find-new-trending-series",
+			},
+		},
 	)
 
 	server := &http.Server{

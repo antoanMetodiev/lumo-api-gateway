@@ -157,3 +157,141 @@ func TestFireAndForgetRecoversFromPanic(t *testing.T) {
 		t.Errorf("status = %d, want 200", rec.Code)
 	}
 }
+
+// --- trending refresh ---
+
+// trendingStub stands in for one catalog service: it serves a trending list
+// whose rows carry createdAt, and records whether the regenerate endpoint
+// was hit.
+type trendingStub struct {
+	server *httptest.Server
+
+	mu           sync.Mutex
+	listBody     string
+	listStatus   int
+	refreshed    bool
+	refreshedSig chan struct{}
+}
+
+func newTrendingStub(listBody string, listStatus int) *trendingStub {
+	s := &trendingStub{listBody: listBody, listStatus: listStatus, refreshedSig: make(chan struct{})}
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /list", func(w http.ResponseWriter, r *http.Request) {
+		s.mu.Lock()
+		body, status := s.listBody, s.listStatus
+		s.mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(status)
+		w.Write([]byte(body))
+	})
+	mux.HandleFunc("POST /refresh", func(w http.ResponseWriter, r *http.Request) {
+		s.mu.Lock()
+		alreadySignaled := s.refreshed
+		s.refreshed = true
+		s.mu.Unlock()
+		if !alreadySignaled {
+			close(s.refreshedSig)
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+	s.server = httptest.NewServer(mux)
+	return s
+}
+
+func (s *trendingStub) target() TrendingTarget {
+	return TrendingTarget{Name: "stub", ListURL: s.server.URL + "/list", RefreshURL: s.server.URL + "/refresh"}
+}
+
+func (s *trendingStub) close() { s.server.Close() }
+
+func (s *trendingStub) didRefresh() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.refreshed
+}
+
+// waitForRefresh blocks until the regenerate endpoint is hit, so the test
+// never depends on goroutine scheduling.
+func (s *trendingStub) waitForRefresh(t *testing.T) {
+	t.Helper()
+	select {
+	case <-s.refreshedSig:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for the refresh call")
+	}
+}
+
+func listWithCreatedAt(age time.Duration) string {
+	return `[{"createdAt":"` + time.Now().Add(-age).UTC().Format(time.RFC3339Nano) + `"}]`
+}
+
+func TestTrendingRefreshSkippedWhenListIsFresh(t *testing.T) {
+	stub := newTrendingStub(listWithCreatedAt(time.Hour), http.StatusOK)
+	defer stub.close()
+
+	refreshTrendingIfStale(context.Background(), stub.target())
+
+	// Nothing to wait on when the expectation is "no call", so give the
+	// goroutine a window in which it would have fired if it were going to.
+	time.Sleep(300 * time.Millisecond)
+	if stub.didRefresh() {
+		t.Error("expected no refresh for a list newer than trendingMaxAge")
+	}
+}
+
+func TestTrendingRefreshRunsWhenListIsStale(t *testing.T) {
+	stub := newTrendingStub(listWithCreatedAt(trendingMaxAge+time.Hour), http.StatusOK)
+	defer stub.close()
+
+	refreshTrendingIfStale(context.Background(), stub.target())
+	stub.waitForRefresh(t)
+}
+
+// An empty table is the state right after the migration runs — the refresh
+// has to fire, or the list would stay empty forever.
+func TestTrendingRefreshRunsWhenListIsEmpty(t *testing.T) {
+	stub := newTrendingStub(`[]`, http.StatusOK)
+	defer stub.close()
+
+	refreshTrendingIfStale(context.Background(), stub.target())
+	stub.waitForRefresh(t)
+}
+
+// A service that can't answer shouldn't leave trending frozen: treat an
+// unusable response as stale and try, rather than skipping forever.
+func TestTrendingRefreshRunsWhenListUnreadable(t *testing.T) {
+	stub := newTrendingStub(`not json`, http.StatusOK)
+	defer stub.close()
+
+	refreshTrendingIfStale(context.Background(), stub.target())
+	stub.waitForRefresh(t)
+}
+
+// The newest row decides, not the first one — Get10Trending* orders by
+// created_at DESC, but nothing in this package relies on that ordering.
+func TestTrendingRefreshUsesNewestRow(t *testing.T) {
+	old := time.Now().Add(-(trendingMaxAge + time.Hour)).UTC().Format(time.RFC3339Nano)
+	fresh := time.Now().Add(-time.Hour).UTC().Format(time.RFC3339Nano)
+	stub := newTrendingStub(`[{"createdAt":"`+old+`"},{"createdAt":"`+fresh+`"}]`, http.StatusOK)
+	defer stub.close()
+
+	refreshTrendingIfStale(context.Background(), stub.target())
+
+	time.Sleep(300 * time.Millisecond)
+	if stub.didRefresh() {
+		t.Error("expected no refresh: the newest row is within trendingMaxAge")
+	}
+}
+
+// The parent context is the server's shutdown context; a refresh takes
+// minutes, so it must not inherit that cancellation mid-flight.
+func TestTrendingRefreshSurvivesParentCancellation(t *testing.T) {
+	stub := newTrendingStub(`[]`, http.StatusOK)
+	defer stub.close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	refreshTrendingIfStale(ctx, stub.target())
+	cancel()
+
+	stub.waitForRefresh(t)
+}

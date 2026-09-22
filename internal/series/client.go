@@ -28,6 +28,12 @@ func (c *Client) GetSeriesByTmdbId(ctx context.Context, tmdbID string) (*downstr
 	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/getSeriesByTmdbId/"+url.PathEscape(tmdbID), nil, nil)
 }
 
+// GetTrendingSeries mirrors internal/movies.Client.GetTrendingMovies —
+// lumo-series-svc grew its own trending endpoints to match movies-svc's.
+func (c *Client) GetTrendingSeries(ctx context.Context) (*downstream.Result, error) {
+	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/get-trending-series", nil, nil)
+}
+
 func (c *Client) Heartbeat(ctx context.Context) (*downstream.Result, error) {
 	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/heartbeat", nil, nil)
 }

@@ -39,6 +39,7 @@ func NewHandlers(client *Client, userClient *users.Client) *Handlers {
 
 func (h *Handlers) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /getSeriesByTmdbId/{tmdbId}", h.getSeriesByTmdbId)
+	mux.HandleFunc("GET /get-trending-series", h.getTrendingSeries)
 	mux.HandleFunc("POST /check-for-new-episodes", h.checkForNewEpisodes)
 	mux.HandleFunc("GET /search-series-matching-results/{searchTitle}", h.searchSeriesMatchingResults)
 	mux.HandleFunc("DELETE /delete-series-comment", h.deleteSeriesComment)
@@ -75,6 +76,11 @@ func proxyOr500(w http.ResponseWriter, label string, res *downstream.Result, err
 		return
 	}
 	downstream.WriteProxy(w, res)
+}
+
+func (h *Handlers) getTrendingSeries(w http.ResponseWriter, r *http.Request) {
+	res, err := h.client.GetTrendingSeries(r.Context())
+	proxyOr500(w, "GET /get-trending-series", res, err)
 }
 
 func (h *Handlers) getSeriesByTmdbId(w http.ResponseWriter, r *http.Request) {
