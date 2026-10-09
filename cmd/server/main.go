@@ -130,8 +130,7 @@ func main() {
 	// every distinct database every 10 hours. Independent of the /heartbeat
 	// fan-out above, which only reaches four services and only when
 	// something external hits it. See StartKeepAlive's doc comment for why
-	// the database list is per-database rather than per-service, and why
-	// subtitles-taker's entry points at /health.
+	// the database list is per-database rather than per-service.
 	go heartbeat.StartKeepAlive(ctx,
 		map[string]string{
 			"api-gateway":                cfg.SelfURL + "/health",
@@ -148,7 +147,7 @@ func main() {
 			"series-db":    cfg.SeriesSvcURL + "/db-keepalive",
 			"user-db":      cfg.UserSvcURL + "/db-keepalive",
 			"payments-db":  cfg.PaymentsSvcURL + "/db-keepalive",
-			"subtitles-db": cfg.SubtitlesTakerURL + "/health",
+			"subtitles-db": cfg.SubtitlesTakerURL + "/db-keepalive",
 		},
 		// The homepage hero's two lists. Called straight on the owning
 		// service rather than through this gateway's own routes: only the

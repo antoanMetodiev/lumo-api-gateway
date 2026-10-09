@@ -113,8 +113,9 @@ type TrendingTarget struct {
 // not base URLs — each target's own /db-keepalive (lumo-movies-svc,
 // lumo-series-svc, lumo-user-svc, lumo-payments-svc) runs a trivial
 // `SELECT 1` against its pool when hit, while
-// lumo-movies-subtitles-taker-svc pings its database from /health instead,
-// so that's the URL it's registered under. Every ping is fire-and-forget
+// lumo-movies-subtitles-taker-svc's reads a row from its subtitles table
+// (its /health does the same, so the 2-minute service tick touches that
+// database too). Every ping is fire-and-forget
 // (see pingOne), so one slow or dead target never delays the rest of the
 // tick. Replaces the three separate tickers this used to run (self-ping,
 // fleet /health, fleet /db-keepalive).
