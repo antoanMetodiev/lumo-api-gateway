@@ -141,13 +141,15 @@ func main() {
 			"user-svc":                   cfg.UserSvcURL + "/health",
 			"payments-svc":               cfg.PaymentsSvcURL + "/health",
 			"subtitles-taker-svc":        cfg.SubtitlesTakerURL + "/health",
+			"series-subtitles-taker-svc": cfg.SeriesSubtitlesTakerURL + "/health",
 		},
 		map[string]string{
-			"movies-db":    cfg.MoviesSvcURL + "/db-keepalive",
-			"series-db":    cfg.SeriesSvcURL + "/db-keepalive",
-			"user-db":      cfg.UserSvcURL + "/db-keepalive",
-			"payments-db":  cfg.PaymentsSvcURL + "/db-keepalive",
-			"subtitles-db": cfg.SubtitlesTakerURL + "/db-keepalive",
+			"movies-db":           cfg.MoviesSvcURL + "/db-keepalive",
+			"series-db":           cfg.SeriesSvcURL + "/db-keepalive",
+			"user-db":             cfg.UserSvcURL + "/db-keepalive",
+			"payments-db":         cfg.PaymentsSvcURL + "/db-keepalive",
+			"subtitles-db":        cfg.SubtitlesTakerURL + "/db-keepalive",
+			"series-subtitles-db": cfg.SeriesSubtitlesTakerURL + "/db-keepalive",
 		},
 		// The homepage hero's two lists. Called straight on the owning
 		// service rather than through this gateway's own routes: only the

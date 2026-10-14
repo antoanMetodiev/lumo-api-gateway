@@ -67,8 +67,8 @@ func fireAndForget(name string, call func(context.Context) error) {
 // servicePingInterval is how often every service in the fleet (this gateway
 // included) gets a GET /health. Render's free tier puts an idle instance to
 // sleep after ~15 minutes; 2 minutes beats that with margin for a couple of
-// missed or slow ticks. The two movies-generator services and
-// lumo-movies-subtitles-taker-svc are only kept warm by this — nothing else
+// missed or slow ticks. The two movies-generator services and both
+// subtitles-taker services are only kept warm by this — nothing else
 // ever calls them on a schedule.
 const servicePingInterval = 2 * time.Minute
 
@@ -113,9 +113,9 @@ type TrendingTarget struct {
 // not base URLs — each target's own /db-keepalive (lumo-movies-svc,
 // lumo-series-svc, lumo-user-svc, lumo-payments-svc) runs a trivial
 // `SELECT 1` against its pool when hit, while
-// lumo-movies-subtitles-taker-svc's reads a row from its subtitles table
-// (its /health does the same, so the 2-minute service tick touches that
-// database too). Every ping is fire-and-forget
+// the two subtitles-taker services' read a row from their subtitles table
+// (their /health does the same, so the 2-minute service tick touches those
+// databases too). Every ping is fire-and-forget
 // (see pingOne), so one slow or dead target never delays the rest of the
 // tick. Replaces the three separate tickers this used to run (self-ping,
 // fleet /health, fleet /db-keepalive).

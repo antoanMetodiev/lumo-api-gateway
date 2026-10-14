@@ -34,8 +34,9 @@ type Config struct {
 	// Keep-alive-only targets (see internal/heartbeat.StartKeepAlive) — the
 	// gateway never proxies to either of these, it just pings them so
 	// Render's free tier doesn't put them to sleep.
-	SelfURL           string // this gateway's own public URL
-	SubtitlesTakerURL string // lumo-movies-subtitles-taker-svc (my-app calls it directly)
+	SelfURL                 string // this gateway's own public URL
+	SubtitlesTakerURL       string // lumo-movies-subtitles-taker-svc (my-app calls it directly)
+	SeriesSubtitlesTakerURL string // lumo-series-subtitles-taker-svc (my-app calls it directly)
 }
 
 func Load() Config {
@@ -58,8 +59,9 @@ func Load() Config {
 		UserSvcURL:                 envOr("USER_SVC_URL", "https://lumo-new-user-svc.onrender.com"),                                     // http://localhost:8083
 		PaymentsSvcURL:             envOr("PAYMENTS_SVC_URL", "https://lumo-payments-svc.onrender.com"),                                 // http://localhost:8084
 
-		SelfURL:           envOr("SELF_URL", "https://lumo-api-gateway.onrender.com"),
-		SubtitlesTakerURL: envOr("SUBTITLES_TAKER_URL", "https://lumo-movies-subtitles-taker-svc.onrender.com"),
+		SelfURL:                 envOr("SELF_URL", "https://lumo-api-gateway.onrender.com"),
+		SubtitlesTakerURL:       envOr("SUBTITLES_TAKER_URL", "https://lumo-movies-subtitles-taker-svc.onrender.com"),
+		SeriesSubtitlesTakerURL: envOr("SERIES_SUBTITLES_TAKER_URL", "https://lumo-series-subtitles-taker-svc.onrender.com"),
 	}
 }
 

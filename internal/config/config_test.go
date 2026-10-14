@@ -42,6 +42,7 @@ func TestLoadDefaultsWhenUnset(t *testing.T) {
 		"PaymentsSvcURL":             "https://lumo-payments-svc.onrender.com",
 		"SelfURL":                    "https://lumo-api-gateway.onrender.com",
 		"SubtitlesTakerURL":          "https://lumo-movies-subtitles-taker-svc.onrender.com",
+		"SeriesSubtitlesTakerURL":    "https://lumo-series-subtitles-taker-svc.onrender.com",
 	}
 	got := map[string]string{
 		"MoviesSvcURL":               cfg.MoviesSvcURL,
@@ -52,6 +53,7 @@ func TestLoadDefaultsWhenUnset(t *testing.T) {
 		"PaymentsSvcURL":             cfg.PaymentsSvcURL,
 		"SelfURL":                    cfg.SelfURL,
 		"SubtitlesTakerURL":          cfg.SubtitlesTakerURL,
+		"SeriesSubtitlesTakerURL":    cfg.SeriesSubtitlesTakerURL,
 	}
 	for field, want := range wantDefaults {
 		if got[field] != want {
