@@ -54,7 +54,7 @@ func (c *Client) Do(ctx context.Context, method, url string, body []byte, extraH
 		reqBody = bytes.NewReader(body)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, url, reqBody)
+	req, err := http.NewRequestWithContext(ctx, method, withLanguage(ctx, method, url), reqBody)
 	if err != nil {
 		return nil, err
 	}

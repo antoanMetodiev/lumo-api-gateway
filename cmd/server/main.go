@@ -120,7 +120,7 @@ func main() {
 	handler := reqlog.Middleware(
 		cors.Middleware(
 			clerkauth.Middleware(verifier, clerkProtectedPaths)(
-				internalauth.Middleware(cfg.InternalSecret, internalProtectedPaths)(mux),
+				internalauth.Middleware(cfg.InternalSecret, internalProtectedPaths)(downstream.LanguageMiddleware(mux)),
 			),
 		),
 	)
