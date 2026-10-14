@@ -43,6 +43,12 @@ func (c *Client) GetEveryThirtySeries(ctx context.Context, page, size string) (*
 	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/get-next-thirty-series?"+q.Encode(), nil, nil)
 }
 
+// GetSeriesFacts fetches lumo-series-svc's facts panel for a TMDB id.
+func (c *Client) GetSeriesFacts(ctx context.Context, tmdbID string) (*downstream.Result, error) {
+	q := url.Values{"tmdbId": {tmdbID}}
+	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/get-series-facts?"+q.Encode(), nil, nil)
+}
+
 // GetSeriesTitles fetches lumo-series-svc's titles / posters for TMDB ids.
 func (c *Client) GetSeriesTitles(ctx context.Context, ids string) (*downstream.Result, error) {
 	q := url.Values{"ids": {ids}}

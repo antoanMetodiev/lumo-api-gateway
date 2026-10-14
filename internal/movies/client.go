@@ -80,6 +80,12 @@ func (c *Client) GetConcreteMovieDetails(ctx context.Context, movieID string) (*
 	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/get-movie-details?"+q.Encode(), nil, nil)
 }
 
+// GetMovieFacts fetches lumo-movies-svc's facts panel for a TMDB id.
+func (c *Client) GetMovieFacts(ctx context.Context, tmdbID string) (*downstream.Result, error) {
+	q := url.Values{"tmdbId": {tmdbID}}
+	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/get-movie-facts?"+q.Encode(), nil, nil)
+}
+
 // GetMovieTitles fetches lumo-movies-svc's titles / posters for TMDB ids.
 func (c *Client) GetMovieTitles(ctx context.Context, ids string) (*downstream.Result, error) {
 	q := url.Values{"ids": {ids}}

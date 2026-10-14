@@ -51,6 +51,7 @@ func (h *Handlers) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /get-movies-by-title", h.getMoviesByTitle)
 	mux.HandleFunc("GET /get-movie-details", h.getConcreteMovieDetails)
 	mux.HandleFunc("GET /get-movie-titles", h.getMovieTitles)
+	mux.HandleFunc("GET /get-movie-facts", h.getMovieFacts)
 	mux.HandleFunc("GET /get-all-movies-count", h.getAllMoviesCount)
 	mux.HandleFunc("GET /discover-movies", h.discoverMovies)
 	mux.HandleFunc("GET /discover-movies-count", h.discoverMoviesCount)
@@ -428,4 +429,11 @@ var emptyMovie = map[string]any{
 func (h *Handlers) getMovieTitles(w http.ResponseWriter, r *http.Request) {
 	res, err := h.client.GetMovieTitles(r.Context(), r.URL.Query().Get("ids"))
 	proxyOr500(w, "GET /get-movie-titles", res, err)
+}
+
+// getMovieFacts proxies a movie's facts panel (original title / language,
+// budget, revenue, social pages, featured crew).
+func (h *Handlers) getMovieFacts(w http.ResponseWriter, r *http.Request) {
+	res, err := h.client.GetMovieFacts(r.Context(), r.URL.Query().Get("tmdbId"))
+	proxyOr500(w, "GET /get-movie-facts", res, err)
 }
