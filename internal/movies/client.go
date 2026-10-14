@@ -80,6 +80,12 @@ func (c *Client) GetConcreteMovieDetails(ctx context.Context, movieID string) (*
 	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/get-movie-details?"+q.Encode(), nil, nil)
 }
 
+// GetMovieTitles fetches lumo-movies-svc's titles / posters for TMDB ids.
+func (c *Client) GetMovieTitles(ctx context.Context, ids string) (*downstream.Result, error) {
+	q := url.Values{"ids": {ids}}
+	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/get-movie-titles?"+q.Encode(), nil, nil)
+}
+
 // SearchMovies mirrors MoviesGeneratorClient.searchMovies — Feign's
 // JacksonEncoder encodes even a bare String request body as a JSON string
 // literal (quoted), so that's what's forwarded here too.

@@ -52,6 +52,7 @@ func (h *Handlers) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /get-series-by-title", h.getSeriesByTitle)
 	mux.HandleFunc("GET /get-next-thirty-series", h.getEveryThirtySeries)
 	mux.HandleFunc("GET /get-series-details", h.getConcreteSeriesDetails)
+	mux.HandleFunc("GET /get-series-titles", h.getSeriesTitles)
 	mux.HandleFunc("GET /get-all-series-count", h.getAllSeriesCount)
 	mux.HandleFunc("POST /search-series", h.searchSeries)
 	mux.HandleFunc("PUT /react-series-comment", h.reactToSeriesComment)
@@ -366,4 +367,11 @@ func queryOr(q map[string][]string, key, fallback string) string {
 		return v[0]
 	}
 	return fallback
+}
+
+// getSeriesTitles proxies the current (translated, via ?lang) titles and
+// posters for a list of TMDB ids — see the movies counterpart.
+func (h *Handlers) getSeriesTitles(w http.ResponseWriter, r *http.Request) {
+	res, err := h.client.GetSeriesTitles(r.Context(), r.URL.Query().Get("ids"))
+	proxyOr500(w, "GET /get-series-titles", res, err)
 }

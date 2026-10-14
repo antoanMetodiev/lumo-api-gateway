@@ -50,6 +50,7 @@ func (h *Handlers) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /get-next-thirty-movies", h.getEveryThirtyMovies)
 	mux.HandleFunc("GET /get-movies-by-title", h.getMoviesByTitle)
 	mux.HandleFunc("GET /get-movie-details", h.getConcreteMovieDetails)
+	mux.HandleFunc("GET /get-movie-titles", h.getMovieTitles)
 	mux.HandleFunc("GET /get-all-movies-count", h.getAllMoviesCount)
 	mux.HandleFunc("GET /discover-movies", h.discoverMovies)
 	mux.HandleFunc("GET /discover-movies-count", h.discoverMoviesCount)
@@ -419,4 +420,12 @@ var emptyMovie = map[string]any{
 	"castList":          []any{},
 	"videoURL":          nil,
 	"imagesList":        []any{},
+}
+
+// getMovieTitles proxies the current (translated, via ?lang) titles and
+// posters for a list of TMDB ids — for the watchlist, playlists, likes and
+// last-viewed, which store a copy from when each title was saved.
+func (h *Handlers) getMovieTitles(w http.ResponseWriter, r *http.Request) {
+	res, err := h.client.GetMovieTitles(r.Context(), r.URL.Query().Get("ids"))
+	proxyOr500(w, "GET /get-movie-titles", res, err)
 }
