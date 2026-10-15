@@ -142,7 +142,6 @@ func main() {
 			"payments-svc":               cfg.PaymentsSvcURL + "/health",
 			"subtitles-taker-svc":        cfg.SubtitlesTakerURL + "/health",
 			"series-subtitles-taker-svc": cfg.SeriesSubtitlesTakerURL + "/health",
-			"zplay-movies-subtitles-svc": cfg.ZplayMoviesSubtitlesURL + "/health",
 		},
 		map[string]string{
 			"movies-db":           cfg.MoviesSvcURL + "/db-keepalive",
