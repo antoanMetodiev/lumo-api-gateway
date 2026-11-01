@@ -165,21 +165,23 @@ func (c *Client) GetCommentsReactions(ctx context.Context, commentIDs string) (*
 // DiscoverMovies mirrors MovieClient.discoverMovies — genre/year/actorName/sort
 // are Feign @RequestParam(required=false): an empty value here is simply
 // omitted from the outgoing query string, same as Feign never sending a null
-// param.
-func (c *Client) DiscoverMovies(ctx context.Context, genre, year, actorName, sort, page, size string) (*downstream.Result, error) {
+// param. audio ("bg") keeps only the movies with a Bulgarian dub.
+func (c *Client) DiscoverMovies(ctx context.Context, genre, year, actorName, sort, audio, page, size string) (*downstream.Result, error) {
 	q := url.Values{"page": {page}, "size": {size}}
 	setIfPresent(q, "genre", genre)
 	setIfPresent(q, "year", year)
 	setIfPresent(q, "actorName", actorName)
 	setIfPresent(q, "sort", sort)
+	setIfPresent(q, "audio", audio)
 	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/discover-movies?"+q.Encode(), nil, nil)
 }
 
-func (c *Client) DiscoverMoviesCount(ctx context.Context, genre, year, actorName string) (*downstream.Result, error) {
+func (c *Client) DiscoverMoviesCount(ctx context.Context, genre, year, actorName, audio string) (*downstream.Result, error) {
 	q := url.Values{}
 	setIfPresent(q, "genre", genre)
 	setIfPresent(q, "year", year)
 	setIfPresent(q, "actorName", actorName)
+	setIfPresent(q, "audio", audio)
 	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/discover-movies-count?"+q.Encode(), nil, nil)
 }
 

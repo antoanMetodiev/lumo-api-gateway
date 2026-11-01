@@ -192,13 +192,13 @@ func (h *Handlers) discoverMovies(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	page := queryOr(q, "page", "0")
 	size := queryOr(q, "size", "30")
-	res, err := h.client.DiscoverMovies(r.Context(), q.Get("genre"), q.Get("year"), q.Get("actorName"), q.Get("sort"), page, size)
+	res, err := h.client.DiscoverMovies(r.Context(), q.Get("genre"), q.Get("year"), q.Get("actorName"), q.Get("sort"), q.Get("audio"), page, size)
 	proxyOr500(w, "GET /discover-movies", res, err)
 }
 
 func (h *Handlers) discoverMoviesCount(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	res, err := h.client.DiscoverMoviesCount(r.Context(), q.Get("genre"), q.Get("year"), q.Get("actorName"))
+	res, err := h.client.DiscoverMoviesCount(r.Context(), q.Get("genre"), q.Get("year"), q.Get("actorName"), q.Get("audio"))
 	proxyOr500(w, "GET /discover-movies-count", res, err)
 }
 
