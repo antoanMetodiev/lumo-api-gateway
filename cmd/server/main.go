@@ -38,6 +38,7 @@ import (
 	"lumo-api-gateway/internal/users"
 	"lumo-api-gateway/internal/watching"
 	"lumo-api-gateway/internal/watchlist"
+	"lumo-api-gateway/internal/watchprogress"
 	"lumo-api-gateway/internal/wsnotify"
 )
 
@@ -45,7 +46,7 @@ import (
 // "/watching" — a new-feature addition with no Java original (see
 // lumo-user-svc's watching package doc comment).
 var clerkProtectedPaths = []string{
-	"/user", "/watchlist", "/last-viewed", "/payments", "/friends", "/likes", "/playlists", "/watching", "/ai-assistant",
+	"/user", "/watchlist", "/last-viewed", "/payments", "/friends", "/likes", "/playlists", "/watching", "/watch-progress", "/ai-assistant",
 	"/post-movie-comment", "/update-movie-comment", "/delete-movie-comment", "/react-movie-comment",
 	"/post-series-comment", "/update-series-comment", "/delete-series-comment", "/react-series-comment",
 }
@@ -77,6 +78,7 @@ func main() {
 	friendsClient := friends.NewClient(ds, cfg.UserSvcURL)
 	playlistsClient := playlists.NewClient(ds, cfg.UserSvcURL)
 	watchingClient := watching.NewClient(ds, cfg.UserSvcURL)
+	watchProgressHandlers := watchprogress.NewHandlers(ds, cfg.UserSvcURL)
 	aiAssistantClient := aiassistant.NewClient(ds, cfg.UserSvcURL)
 	paymentsClient := payments.NewClient(ds, cfg.PaymentsSvcURL)
 
@@ -94,6 +96,7 @@ func main() {
 	friends.NewHandlers(friendsClient).Register(mux)
 	playlists.NewHandlers(playlistsClient).Register(mux)
 	watching.NewHandlers(watchingClient).Register(mux)
+	watchProgressHandlers.Register(mux)
 	aiassistant.NewHandlers(aiAssistantClient).Register(mux)
 	wsHub.Register(mux)
 	payments.NewHandlers(paymentsClient).Register(mux)
