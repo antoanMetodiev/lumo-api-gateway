@@ -31,6 +31,7 @@ import (
 	"lumo-api-gateway/internal/likes"
 	"lumo-api-gateway/internal/metrics"
 	"lumo-api-gateway/internal/movies"
+	"lumo-api-gateway/internal/ogcard"
 	"lumo-api-gateway/internal/payments"
 	"lumo-api-gateway/internal/playlists"
 	"lumo-api-gateway/internal/reqlog"
@@ -97,6 +98,7 @@ func main() {
 	playlists.NewHandlers(playlistsClient).Register(mux)
 	watching.NewHandlers(watchingClient).Register(mux)
 	watchProgressHandlers.Register(mux)
+	ogcard.NewHandlers(ds, cfg.MoviesSvcURL, cfg.SeriesSvcURL).Register(mux)
 	aiassistant.NewHandlers(aiAssistantClient).Register(mux)
 	wsHub.Register(mux)
 	payments.NewHandlers(paymentsClient).Register(mux)
