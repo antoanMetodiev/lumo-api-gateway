@@ -16,6 +16,10 @@ type fakeMoviesClient struct {
 	err error
 }
 
+func (f *fakeMoviesClient) GetActor(ctx context.Context, imdbID string) (*downstream.Result, error) {
+	return &downstream.Result{StatusCode: http.StatusNotFound}, nil
+}
+
 func (f *fakeMoviesClient) GetActorLatestMovies(ctx context.Context, imdbID string) (*downstream.Result, error) {
 	return f.res, f.err
 }
@@ -23,6 +27,10 @@ func (f *fakeMoviesClient) GetActorLatestMovies(ctx context.Context, imdbID stri
 type fakeSeriesClient struct {
 	res *downstream.Result
 	err error
+}
+
+func (f *fakeSeriesClient) GetActor(ctx context.Context, imdbID string) (*downstream.Result, error) {
+	return &downstream.Result{StatusCode: http.StatusOK, Body: []byte(`{"imdbId":"nm1"}`), ContentType: "application/json"}, nil
 }
 
 func (f *fakeSeriesClient) GetActorLatestSeries(ctx context.Context, imdbID string) (*downstream.Result, error) {
@@ -157,4 +165,17 @@ type seriesClientFunc func(ctx context.Context, imdbID string) (*downstream.Resu
 
 func (f seriesClientFunc) GetActorLatestSeries(ctx context.Context, imdbID string) (*downstream.Result, error) {
 	return f(ctx, imdbID)
+}
+
+func (f seriesClientFunc) GetActor(ctx context.Context, imdbID string) (*downstream.Result, error) {
+	return f(ctx, imdbID)
+}
+
+func TestGetActorFallsBackToSeries(t *testing.T) {
+	server := newTestServer(&fakeMoviesClient{}, &fakeSeriesClient{})
+	rec := httptest.NewRecorder()
+	server.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/actor/nm1", nil))
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "nm1") {
+		t.Fatalf("got %d %q, want the series-svc actor", rec.Code, rec.Body.String())
+	}
 }

@@ -16,10 +16,12 @@ import (
 
 type MoviesClient interface {
 	GetActorLatestMovies(ctx context.Context, imdbID string) (*downstream.Result, error)
+	GetActor(ctx context.Context, imdbID string) (*downstream.Result, error)
 }
 
 type SeriesClient interface {
 	GetActorLatestSeries(ctx context.Context, imdbID string) (*downstream.Result, error)
+	GetActor(ctx context.Context, imdbID string) (*downstream.Result, error)
 }
 
 type Handlers struct {
@@ -33,6 +35,7 @@ func NewHandlers(movies MoviesClient, series SeriesClient) *Handlers {
 
 func (h *Handlers) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /actor/latest-works/{imdb_id}", h.getActorLatestWorks)
+	mux.HandleFunc("GET /actor/{imdb_id}", h.getActor)
 }
 
 // getActorLatestWorks mirrors ActorController.getActorLatestWorks:
@@ -83,4 +86,22 @@ func logActorError(svc, imdbID string, res *downstream.Result, err error) {
 		return
 	}
 	log.Printf("GET /actor/latest-works/%s: %s call failed: status %d", imdbID, svc, res.StatusCode)
+}
+
+// getActor serves one actor (translated on ?lang, which the downstream
+// middleware forwards). The movies and series databases each keep their own
+// actors, so movies-svc is asked first and series-svc when it has no such actor.
+func (h *Handlers) getActor(w http.ResponseWriter, r *http.Request) {
+	imdbID := r.PathValue("imdb_id")
+
+	res, err := h.movies.GetActor(r.Context(), imdbID)
+	if err == nil && res.StatusCode == http.StatusNotFound {
+		res, err = h.series.GetActor(r.Context(), imdbID)
+	}
+	if err != nil {
+		log.Printf("GET /actor/%s: %v", imdbID, err)
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
+	downstream.WriteProxy(w, res)
 }

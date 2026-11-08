@@ -184,3 +184,9 @@ func setIfPresent(q url.Values, key, value string) {
 		q.Set(key, value)
 	}
 }
+
+// GetActor fetches one actor by IMDb id (translated on ?lang).
+func (c *Client) GetActor(ctx context.Context, imdbID string) (*downstream.Result, error) {
+	q := url.Values{"imdbId": {imdbID}}
+	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/get-actor?"+q.Encode(), nil, nil)
+}
