@@ -157,20 +157,22 @@ func (c *Client) GetCommentsReactions(ctx context.Context, commentIDs string) (*
 	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/get-series-comments-reactions?"+q.Encode(), nil, nil)
 }
 
-func (c *Client) DiscoverSeries(ctx context.Context, genre, year, actorName, sort, page, size string) (*downstream.Result, error) {
+func (c *Client) DiscoverSeries(ctx context.Context, genre, year, actorName, network, sort, page, size string) (*downstream.Result, error) {
 	q := url.Values{"page": {page}, "size": {size}}
 	setIfPresent(q, "genre", genre)
 	setIfPresent(q, "year", year)
 	setIfPresent(q, "actorName", actorName)
+	setIfPresent(q, "network", network)
 	setIfPresent(q, "sort", sort)
 	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/discover-series?"+q.Encode(), nil, nil)
 }
 
-func (c *Client) DiscoverSeriesCount(ctx context.Context, genre, year, actorName string) (*downstream.Result, error) {
+func (c *Client) DiscoverSeriesCount(ctx context.Context, genre, year, actorName, network string) (*downstream.Result, error) {
 	q := url.Values{}
 	setIfPresent(q, "genre", genre)
 	setIfPresent(q, "year", year)
 	setIfPresent(q, "actorName", actorName)
+	setIfPresent(q, "network", network)
 	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/discover-series-count?"+q.Encode(), nil, nil)
 }
 

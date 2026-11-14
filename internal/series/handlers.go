@@ -324,13 +324,13 @@ func (h *Handlers) discoverSeries(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	page := queryOr(q, "page", "0")
 	size := queryOr(q, "size", "30")
-	res, err := h.client.DiscoverSeries(r.Context(), q.Get("genre"), q.Get("year"), q.Get("actorName"), q.Get("sort"), page, size)
+	res, err := h.client.DiscoverSeries(r.Context(), q.Get("genre"), q.Get("year"), q.Get("actorName"), q.Get("network"), q.Get("sort"), page, size)
 	proxyOr500(w, "GET /discover-series", res, err)
 }
 
 func (h *Handlers) discoverSeriesCount(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	res, err := h.client.DiscoverSeriesCount(r.Context(), q.Get("genre"), q.Get("year"), q.Get("actorName"))
+	res, err := h.client.DiscoverSeriesCount(r.Context(), q.Get("genre"), q.Get("year"), q.Get("actorName"), q.Get("network"))
 	proxyOr500(w, "GET /discover-series-count", res, err)
 }
 
