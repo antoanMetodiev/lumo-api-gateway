@@ -38,6 +38,7 @@ type Config struct {
 	SubtitlesTakerURL       string // lumo-movies-subtitles-taker-svc (my-app calls it directly)
 	SeriesSubtitlesTakerURL string // lumo-series-subtitles-taker-svc (my-app calls it directly)
 	CloudMoviesSubtitlesURL string // cloud-movies-subtitles-generators (worker: BG subtitles from OpenSubtitles/Subdl)
+	CloudSeriesSubtitlesURL string // cloud-series-subtitles-generators (same, for series episodes)
 }
 
 func Load() Config {
@@ -64,6 +65,7 @@ func Load() Config {
 		SubtitlesTakerURL:       envOr("SUBTITLES_TAKER_URL", "https://lumo-movies-subtitles-taker-svc.onrender.com"),
 		SeriesSubtitlesTakerURL: envOr("SERIES_SUBTITLES_TAKER_URL", "https://lumo-series-subtitles-taker-svc.onrender.com"),
 		CloudMoviesSubtitlesURL: envOr("CLOUD_MOVIES_SUBTITLES_URL", "https://cloud-movies-subtitles-generators.onrender.com"),
+		CloudSeriesSubtitlesURL: envOr("CLOUD_SERIES_SUBTITLES_URL", "https://cloud-series-subtitles-generators.onrender.com"),
 	}
 }
 
