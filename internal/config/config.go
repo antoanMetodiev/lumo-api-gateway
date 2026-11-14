@@ -37,6 +37,7 @@ type Config struct {
 	SelfURL                 string // this gateway's own public URL
 	SubtitlesTakerURL       string // lumo-movies-subtitles-taker-svc (my-app calls it directly)
 	SeriesSubtitlesTakerURL string // lumo-series-subtitles-taker-svc (my-app calls it directly)
+	CloudMoviesSubtitlesURL string // cloud-movies-subtitles-generators (worker: BG subtitles from OpenSubtitles/Subdl)
 }
 
 func Load() Config {
@@ -62,6 +63,7 @@ func Load() Config {
 		SelfURL:                 envOr("SELF_URL", "https://lumo-api-gateway.onrender.com"),
 		SubtitlesTakerURL:       envOr("SUBTITLES_TAKER_URL", "https://lumo-movies-subtitles-taker-svc.onrender.com"),
 		SeriesSubtitlesTakerURL: envOr("SERIES_SUBTITLES_TAKER_URL", "https://lumo-series-subtitles-taker-svc.onrender.com"),
+		CloudMoviesSubtitlesURL: envOr("CLOUD_MOVIES_SUBTITLES_URL", "https://cloud-movies-subtitles-generators.onrender.com"),
 	}
 }
 
