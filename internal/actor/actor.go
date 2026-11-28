@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 
 	"lumo-api-gateway/internal/downstream"
 )
@@ -17,11 +18,13 @@ import (
 type MoviesClient interface {
 	GetActorLatestMovies(ctx context.Context, imdbID string) (*downstream.Result, error)
 	GetActor(ctx context.Context, imdbID string) (*downstream.Result, error)
+	GetActorWorkCounts(ctx context.Context) (*downstream.Result, error)
 }
 
 type SeriesClient interface {
 	GetActorLatestSeries(ctx context.Context, imdbID string) (*downstream.Result, error)
 	GetActor(ctx context.Context, imdbID string) (*downstream.Result, error)
+	GetActorWorkCounts(ctx context.Context) (*downstream.Result, error)
 }
 
 type Handlers struct {
@@ -36,6 +39,67 @@ func NewHandlers(movies MoviesClient, series SeriesClient) *Handlers {
 func (h *Handlers) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /actor/latest-works/{imdb_id}", h.getActorLatestWorks)
 	mux.HandleFunc("GET /actor/{imdb_id}", h.getActor)
+	mux.HandleFunc("GET /actors/sitemap-ids", h.getSitemapActorIDs)
+}
+
+// SitemapMinWorks: an actor goes into the frontend's sitemap only with at
+// least this many titles (movies + series). Their page is indexable from 2
+// titles, or 1 + a biography — the sitemap takes the clear-cut half; the
+// rest are still reachable through the cast links.
+const SitemapMinWorks = 2
+
+type actorWorkCount struct {
+	ImdbID string `json:"imdbId"`
+	Works  int    `json:"works"`
+}
+
+// getSitemapActorIDs returns the IMDb ids of actors cast in at least
+// SitemapMinWorks titles across both databases — most titles first (ties by
+// id), so a sitemap that has to cut the list keeps the best-known actors. The movies and
+// series services each count only their own titles, so the counts are
+// summed here. Either call failing fails the request (502) — a partial
+// list would make the sitemap drop actors for no reason.
+func (h *Handlers) getSitemapActorIDs(w http.ResponseWriter, r *http.Request) {
+	totals := map[string]int{}
+	for _, call := range []struct {
+		svc string
+		get func(context.Context) (*downstream.Result, error)
+	}{{"movies", h.movies.GetActorWorkCounts}, {"series", h.series.GetActorWorkCounts}} {
+		res, err := call.get(r.Context())
+		if err != nil || !res.OK() {
+			logActorError(call.svc, "sitemap-ids", res, err)
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		var counts []actorWorkCount
+		if err := json.Unmarshal(res.Body, &counts); err != nil {
+			log.Printf("GET /actors/sitemap-ids: decoding %s-svc response: %v", call.svc, err)
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		for _, c := range counts {
+			if c.ImdbID != "" {
+				totals[c.ImdbID] += c.Works
+			}
+		}
+	}
+
+	ids := make([]string, 0, len(totals))
+	for id, works := range totals {
+		if works >= SitemapMinWorks {
+			ids = append(ids, id)
+		}
+	}
+	sort.Slice(ids, func(i, j int) bool {
+		if totals[ids[i]] != totals[ids[j]] {
+			return totals[ids[i]] > totals[ids[j]]
+		}
+		return ids[i] < ids[j]
+	})
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(ids); err != nil {
+		log.Printf("GET /actors/sitemap-ids: %v", err)
+	}
 }
 
 // getActorLatestWorks mirrors ActorController.getActorLatestWorks:

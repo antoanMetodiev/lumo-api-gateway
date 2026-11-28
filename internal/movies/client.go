@@ -30,6 +30,11 @@ func NewClient(ds *downstream.Client, moviesSvcURL, moviesGeneratorURL, moviesGe
 	}
 }
 
+// GetActorWorkCounts: every actor (by IMDb id) with how many movies list them.
+func (c *Client) GetActorWorkCounts(ctx context.Context) (*downstream.Result, error) {
+	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/actor-work-counts", nil, nil)
+}
+
 func (c *Client) GetActorLatestMovies(ctx context.Context, imdbID string) (*downstream.Result, error) {
 	return c.ds.Do(ctx, http.MethodGet, c.moviesSvcURL+"/actor/latest-movies/"+url.PathEscape(imdbID), nil, nil)
 }

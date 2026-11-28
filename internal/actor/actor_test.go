@@ -12,12 +12,18 @@ import (
 )
 
 type fakeMoviesClient struct {
-	res *downstream.Result
-	err error
+	res       *downstream.Result
+	err       error
+	counts    *downstream.Result
+	countsErr error
 }
 
 func (f *fakeMoviesClient) GetActor(ctx context.Context, imdbID string) (*downstream.Result, error) {
 	return &downstream.Result{StatusCode: http.StatusNotFound}, nil
+}
+
+func (f *fakeMoviesClient) GetActorWorkCounts(ctx context.Context) (*downstream.Result, error) {
+	return f.counts, f.countsErr
 }
 
 func (f *fakeMoviesClient) GetActorLatestMovies(ctx context.Context, imdbID string) (*downstream.Result, error) {
@@ -25,12 +31,18 @@ func (f *fakeMoviesClient) GetActorLatestMovies(ctx context.Context, imdbID stri
 }
 
 type fakeSeriesClient struct {
-	res *downstream.Result
-	err error
+	res       *downstream.Result
+	err       error
+	counts    *downstream.Result
+	countsErr error
 }
 
 func (f *fakeSeriesClient) GetActor(ctx context.Context, imdbID string) (*downstream.Result, error) {
 	return &downstream.Result{StatusCode: http.StatusOK, Body: []byte(`{"imdbId":"nm1"}`), ContentType: "application/json"}, nil
+}
+
+func (f *fakeSeriesClient) GetActorWorkCounts(ctx context.Context) (*downstream.Result, error) {
+	return f.counts, f.countsErr
 }
 
 func (f *fakeSeriesClient) GetActorLatestSeries(ctx context.Context, imdbID string) (*downstream.Result, error) {
@@ -171,11 +183,45 @@ func (f seriesClientFunc) GetActor(ctx context.Context, imdbID string) (*downstr
 	return f(ctx, imdbID)
 }
 
+func (f seriesClientFunc) GetActorWorkCounts(ctx context.Context) (*downstream.Result, error) {
+	return f(ctx, "")
+}
+
 func TestGetActorFallsBackToSeries(t *testing.T) {
 	server := newTestServer(&fakeMoviesClient{}, &fakeSeriesClient{})
 	rec := httptest.NewRecorder()
 	server.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/actor/nm1", nil))
 	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "nm1") {
 		t.Fatalf("got %d %q, want the series-svc actor", rec.Code, rec.Body.String())
+	}
+}
+
+func TestGetSitemapActorIDsSumsBothServices(t *testing.T) {
+	movies := &fakeMoviesClient{counts: &downstream.Result{StatusCode: http.StatusOK,
+		Body: []byte(`[{"imdbId":"nm2","works":1},{"imdbId":"nm1","works":1},{"imdbId":"nm3","works":5},{"imdbId":"","works":9}]`)}}
+	series := &fakeSeriesClient{counts: &downstream.Result{StatusCode: http.StatusOK,
+		Body: []byte(`[{"imdbId":"nm2","works":1},{"imdbId":"nm4","works":1}]`)}}
+
+	rec := httptest.NewRecorder()
+	newTestServer(movies, series).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/actors/sitemap-ids", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	// nm3: 5 → first; nm2: 1 movie + 1 series = 2 → in; nm1, nm4: 1 → out; "" → never.
+	if got, want := strings.TrimSpace(rec.Body.String()), `["nm3","nm2"]`; got != want {
+		t.Errorf("body = %s, want %s", got, want)
+	}
+}
+
+func TestGetSitemapActorIDsFailsWhenAServiceFails(t *testing.T) {
+	movies := &fakeMoviesClient{counts: &downstream.Result{StatusCode: http.StatusOK, Body: []byte(`[{"imdbId":"nm3","works":5}]`)}}
+	series := &fakeSeriesClient{countsErr: errors.New("boom")}
+
+	rec := httptest.NewRecorder()
+	newTestServer(movies, series).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/actors/sitemap-ids", nil))
+
+	if rec.Code != http.StatusBadGateway {
+		t.Errorf("status = %d, want 502 (no partial list)", rec.Code)
 	}
 }

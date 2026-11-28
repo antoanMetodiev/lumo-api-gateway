@@ -20,6 +20,11 @@ func NewClient(ds *downstream.Client, baseURL string) *Client {
 	return &Client{ds: ds, baseURL: baseURL}
 }
 
+// GetActorWorkCounts: every actor (by IMDb id) with how many series list them.
+func (c *Client) GetActorWorkCounts(ctx context.Context) (*downstream.Result, error) {
+	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/actor-work-counts", nil, nil)
+}
+
 func (c *Client) GetActorLatestSeries(ctx context.Context, imdbID string) (*downstream.Result, error) {
 	return c.ds.Do(ctx, http.MethodGet, c.baseURL+"/actor/latest-series/"+url.PathEscape(imdbID), nil, nil)
 }
